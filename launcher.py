@@ -19,7 +19,7 @@ with open('data/login.txt', 'r') as f:
 scrapper = InstaScrapper(login, password, testing=True)
 scrapper.login()
 
-poi_num = 1506
+poi_num = 2862
 EMBEDDING_DIM = 300
 LSTM_NUM_UNITS = 512
 
@@ -91,7 +91,13 @@ def predict_user(username):
         user_data = []
         for idx, row in user_df.iterrows():
             user_data.append((row['location'], row['timestamp']))
-        user_data = list(map(lambda y: y[0], sorted(user_data, key=lambda x: x[1])))
+        user_data = sorted(user_data, key=lambda x: x[1])
+        user_dict = {}
+        for i in range(min(5, len(user_data))):
+            loc = user_data[i][0]
+            source = user_data[i][-1]
+            user_dict[loc] = source
+        user_data = list(map(lambda y: y[0], user_data))
 
         user_data_processed = []
         for loc in (user_data):
@@ -109,7 +115,7 @@ def predict_user(username):
 
         user_data_processed = indexing(user_data_processed)
         predict_labels = predict_word(network, user_data_processed, 5, different=True)
-        return [id2poi[label] for label in predict_labels]
+        return user_dict, [id2poi[label] for label in predict_labels]
 
     else:
         return None

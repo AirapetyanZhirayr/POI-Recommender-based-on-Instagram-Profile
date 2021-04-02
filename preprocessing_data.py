@@ -19,7 +19,7 @@ os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = KEY_PATH
 
 # for normalizing location names using Google Maps API ==
 import requests
-google_maps_api_key = 'AIzaSyD6cpfmtzEv45PkPgTuKi6Ai0ow66Xc8Kg'
+google_maps_api_key = ''
 api_key = google_maps_api_key
 # ============================================================
 

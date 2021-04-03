@@ -1,6 +1,6 @@
 from instabot import InstaScrapper
 from preprocessing_data import build_csv, extract_city_country
-api_key = 'AIzaSyBxUfr9s7gZqUdJZouWS6AmgXeoyFPppqk'
+api_key = ''
 from tqdm import tqdm
 import requests
 import numpy as np
@@ -9,6 +9,9 @@ import json
 import torch, torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
+import pandas as pd
+
+
 
 with open('data/login.txt', 'r') as f:
     log_pass = []
@@ -16,12 +19,17 @@ with open('data/login.txt', 'r') as f:
         log_pass.append(line.split('\n')[0])
     login, password = log_pass
 
+
+
 scrapper = InstaScrapper(login, password, testing=True)
 scrapper.login()
 
 poi_num = 2862
 EMBEDDING_DIM = 300
 LSTM_NUM_UNITS = 512
+
+df = pd.read_csv('data/pics.csv')
+true_words = set(df.location)
 
 with open('data/poi2id.json') as f:
     poi2id = json.load(f)
@@ -72,8 +80,8 @@ def predict_word(network, seq, k=1, different=False):
         for i in seq:
             next_word_ix = np.delete(next_word_ix, np.where(next_word_ix == i)[0])
     if k == 'all':
-        return next_word_ix
-    return next_word_ix[:k]
+        return [id2poi[ix] for ix in next_word_ix if id2poi[ix] in true_words]
+    return [id2poi[ix] for ix in next_word_ix if id2poi[ix] in true_words][:k]
     
 EMBEDDING_MATRIX = np.loadtxt('data/emb_mat.txt')
 network = LSTMLoop(poi_num, EMBEDDING_DIM, LSTM_NUM_UNITS, EMBEDDING_MATRIX)
@@ -90,7 +98,7 @@ def predict_user(username):
         user_df = build_csv(user_data, testing=True)
         user_data = []
         for idx, row in user_df.iterrows():
-            user_data.append((row['location'], row['timestamp']))
+            user_data.append((row['location'], row['timestamp'], row['source']))
         user_data = sorted(user_data, key=lambda x: x[1])
         user_dict = {}
         for i in range(min(5, len(user_data))):
@@ -108,17 +116,25 @@ def predict_user(username):
                 if result:
                     result = result[0]
                     _loc = extract_city_country(result['address_components'])
-                    city = _loc['city']
-                    country = _loc['country']
+                    if _loc is not np.nan:
+                        city = _loc['city']
+                        country = _loc['country']
 
-                    user_data_processed.append(city + ', ' + country)
+                        user_data_processed.append(city + ', ' + country)
+                    else:
+                        pass
+        if not user_data_processed:
+            return None
 
         user_data_processed = indexing(user_data_processed)
-        predict_labels = predict_word(network, user_data_processed, 5, different=True)
-        return user_dict, [id2poi[label] for label in predict_labels]
+        predict_words = predict_word(network, user_data_processed, 5, different=True)
+        return user_dict, predict_words
 
     else:
         return None
+
+
+
 
 
 

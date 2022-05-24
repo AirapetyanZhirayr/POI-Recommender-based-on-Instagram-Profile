@@ -1,3 +1,7 @@
+"""
+This Module is designed to preprocess text description of users posts.
+And to extract attributes from post image using google cloud vision
+"""
 import json
 from tqdm import tqdm
 import numpy as np
@@ -290,7 +294,3 @@ if __name__=='__main__':
     with open('data/img_labels.json', 'w') as json_file:
         json.dump(labels, json_file)
     # =============================================================================================================
-
-
-
-

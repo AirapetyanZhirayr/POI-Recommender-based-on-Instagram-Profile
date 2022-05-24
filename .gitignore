@@ -1,3 +1,7 @@
 __pycache__
 data
 chomedriver
+.DS_STORE
+.idea
+.idea
+.ipynb_checkpoints

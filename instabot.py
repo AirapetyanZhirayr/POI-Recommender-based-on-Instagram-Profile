@@ -1,3 +1,9 @@
+"""
+This Module is designed to provide tools for collecting data from the analyzed
+  domain based on Selenium.
+"""
+
+
 import time
 from tqdm import tqdm
 import json
